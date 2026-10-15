@@ -1,26 +1,199 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------
+   Tokens. --accent is Columbia Blue; change it here and every link,
+   rule, and focus ring follows.
+   --------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #08090b;
+  --bg-lift: #0d0f12;
+  --line: #191c21;
+  --line-bright: #2a2f37;
+  --text: #f4f5f7;
+  --muted: #9298a2;
+  --muted-dim: #5c626b;
+
+  --accent: #9bcbeb;
+  --accent-hi: #c9e4f6;
+  --accent-dim: #4a7f9e;
+  --accent-ink: #08090b;
+  --ok: #7ee2a8;
+
+  --measure: 60ch;
+  --gutter: 1.5rem;
+  --shell: 80rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-lift: var(--bg-lift);
+  --color-line: var(--line);
+  --color-line-bright: var(--line-bright);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-dim: var(--muted-dim);
+  --color-accent: var(--accent);
+  --color-accent-hi: var(--accent-hi);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-ink: var(--accent-ink);
+  --color-ok: var(--ok);
+
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Wide scale on purpose: the gap between the smallest label and the
+     largest headline is what gives a minimal page its hierarchy. */
+  --text-meta: 0.6875rem;
+  --text-meta--line-height: 1.3;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.5;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.6;
+  --text-lead: clamp(1.125rem, 1.6vw, 1.5rem);
+  --text-lead--line-height: 1.45;
+  --text-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --text-h3--line-height: 1.15;
+  --text-h2: clamp(2rem, 4.4vw, 3.75rem);
+  --text-h2--line-height: 1;
+  --text-h1: clamp(2.75rem, 8.4vw, 7rem);
+  --text-h1--line-height: 0.88;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * { border-color: var(--line); }
+
+  html {
+    background: var(--bg);
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    font-weight: 380;
+    line-height: 1.6;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Display type gets tighter and lighter as it gets bigger. */
+  h1 { font-weight: 440; letter-spacing: -0.042em; }
+  h2 { font-weight: 450; letter-spacing: -0.032em; }
+  h3, h4 { font-weight: 480; letter-spacing: -0.018em; }
+
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  :where(h1, h2, h3, li, section) { scroll-margin-top: 6rem; }
+}
+
+@layer utilities {
+  .measure { max-width: var(--measure); }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* Page shell. Every section sits on the same rails. */
+  .shell {
+    margin-inline: auto;
+    max-width: var(--shell);
+    padding-inline: var(--gutter);
+  }
+
+  /* Twelve columns on desktop, one on phones. Content spans are
+     chosen per section rather than defaulting to full width. */
+  .grid12 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 3vw, 3rem);
+    row-gap: 2rem;
+  }
+  @media (min-width: 48rem) {
+    .grid12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  }
+
+  /* Dense rows: meta and body belong to the same record, so they sit
+     close together rather than on the page's default rhythm. */
+  .grid12-tight { row-gap: 0.625rem; }
+
+  /* A label that is small and quiet without shouting in capitals. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    letter-spacing: 0.06em;
+    color: var(--muted-dim);
+  }
+
+  /* Full-width hairline used to separate movements of the page. */
+  .rule { border-top: 1px solid var(--line); }
+  .rule-none { border-top: 0; }
+  .rule-bright { border-top: 1px solid var(--line-bright); }
+}
+
+/* ---------------------------------------------------------------
+   Motion layer
+   --------------------------------------------------------------- */
+
+/* Elements handled by the reveal system start hidden only when the
+   script that reveals them is present. No JS, no hiding. */
+.js [data-reveal], .js [data-hero] { visibility: hidden; }
+
+/* The pinned workshop method replaces the stacked list only where it
+   can actually run. Without this, reduced motion on desktop got four
+   absolutely positioned panels drawn on top of each other. */
+.method-scroll { display: none; }
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  .js .method-scroll { display: block; }
+  .js .method-stages { display: none; }
+}
+
+/* SplitText mask wrappers */
+.reveal-line { overflow: hidden; }
+
+/* The intro holds the page still while it plays. */
+.intro-lock, .intro-lock body { overflow: hidden; height: 100%; }
+
+/* Custom pointer replaces the native one, except where precision or a
+   text caret actually matters. */
+.has-cursor, .has-cursor a, .has-cursor button { cursor: none; }
+.has-cursor input, .has-cursor textarea, .has-cursor select { cursor: auto; }
+
+/* Hero entrance. Additive by design: the resting state is visible and
+   the animation only plays FROM hidden, so throttled tabs, reduced
+   motion, or missing CSS still leave readable content. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
+@layer utilities {
+  .rise { animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes ping-ring {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@layer utilities {
+  .caret { animation: blink 1s steps(1) infinite; }
+  .live-dot { position: relative; }
+  .live-dot::after {
+    content: ""; position: absolute; inset: 0; border-radius: 9999px;
+    background: currentColor; animation: ping-ring 1.6s ease-out infinite;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
